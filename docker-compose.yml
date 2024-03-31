@@ -1,0 +1,26 @@
+version: '3'
+services:
+  checker:
+    image: docker.io/mrh44/status_checker:1.0.0
+    volumes:
+      - ./urls.txt:/etc/urls.txt
+    command: /bin/status_checker -a /etc/urls.txt
+    ports:
+      - 8090:8090
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-storage:/var/lib/grafana
+volumes:
+  grafana-storage:
+

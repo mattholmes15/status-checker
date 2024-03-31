@@ -1,0 +1,9 @@
+global:
+  scrape_interval:     5s # By default, scrape targets every 5 seconds.
+  evaluation_interval: 5s # By default, evaluate rules every 5 seconds.
+
+scrape_configs:
+  - job_name: 'checker'
+    static_configs:
+      - targets: ['checker:8090']
+
