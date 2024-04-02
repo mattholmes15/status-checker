@@ -62,9 +62,11 @@ func main() {
 
 	c := make(chan string)
 
+	port := ":8090"
+
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		if err := http.ListenAndServe(":8090", nil); err != nil {
+		if err := http.ListenAndServe(port, nil); err != nil {
 			fmt.Printf("Error starting server: %s\n", err)
 		}
 	}()
@@ -95,7 +97,7 @@ func checkLink(website string, c chan string) {
 	if err != nil {
 		websiteResponseCode.WithLabelValues(website).Set(0)
 		websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
- 		log.WithFields(
+ 		log.WithFields( //TODO Reuse this
         	log.Fields{
             	"website": website,
             	"status": res.StatusCode,
