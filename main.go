@@ -1,18 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"flag"
 	"bufio"
-	"os"
+	"flag"
+	"fmt"
 	"math"
+	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 )
 
 func main() {
+	log.SetFormatter(&log.JSONFormatter{})
 	filePath := flag.String("a", "", "Path to the file containing website URLs")
 	timeInterval := flag.Int64("s", 0, "Seconds between each check")
 	flag.Parse()
@@ -93,12 +95,27 @@ func checkLink(website string, c chan string) {
 	if err != nil {
 		websiteResponseCode.WithLabelValues(website).Set(0)
 		websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
-		fmt.Println(website, "is down!")
+ 		log.WithFields(
+        	log.Fields{
+            	"website": website,
+            	"status": res.StatusCode,
+				"response_time": roundedDuration,
+        	},
+		).Error(website, "is down!")
 		c <- website
 		return
 	}
 	websiteResponseCode.WithLabelValues(website).Set(float64(res.StatusCode))
 	websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
-	fmt.Println(website, res.StatusCode, "Response time:", roundedDuration, "seconds")
+    log.WithFields(
+        log.Fields{
+            "website": website,
+            "status": res.StatusCode,
+			"response_time": roundedDuration,
+        },
+	).Info("Success")
 	c <- website
 }
+
+
+
