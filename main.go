@@ -100,16 +100,23 @@ func checkLink(website string, c chan string) {
 	if err != nil {
 		websiteResponseCode.WithLabelValues(website).Set(0)
 		websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
-		log.WithFields( //TODO Reuse this
+		var statusCode int
+		if res != nil {
+			statusCode = res.StatusCode
+		} else {
+			statusCode = 0 // Or any other default value
+		}
+		log.WithFields(
 			log.Fields{
 				"website":       website,
-				"status":        res.StatusCode,
+				"status":        statusCode, // Use the statusCode variable here
 				"response_time": roundedDuration,
 			},
-		).Error(website, "is down!")
+		).Error(website, " is down!")
 		c <- website
 		return
 	}
+
 	websiteResponseCode.WithLabelValues(website).Set(float64(res.StatusCode))
 	websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
 	log.WithFields(
