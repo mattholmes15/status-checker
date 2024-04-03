@@ -1,7 +1,7 @@
 version: '3'
 services:
   checker:
-    image: docker.io/mrh44/status_checker:1.0.0
+    image: ghcr.io/mattholmes15/status-checker:latest
     volumes:
       - ./urls.txt:/etc/urls.txt
     command: /bin/status_checker -a /etc/urls.txt
