@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -64,10 +65,12 @@ func main() {
 
 	port := ":8090"
 
+	e := echo.New()
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+
 	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		if err := http.ListenAndServe(port, nil); err != nil {
-			fmt.Printf("Error starting server: %s\n", err)
+		if err := e.Start(port); err != nil {
+			fmt.Printf("Error starting Echo server: %s\n", err)
 		}
 	}()
 
@@ -97,27 +100,24 @@ func checkLink(website string, c chan string) {
 	if err != nil {
 		websiteResponseCode.WithLabelValues(website).Set(0)
 		websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
- 		log.WithFields( //TODO Reuse this
-        	log.Fields{
-            	"website": website,
-            	"status": res.StatusCode,
+		log.WithFields( //TODO Reuse this
+			log.Fields{
+				"website":       website,
+				"status":        res.StatusCode,
 				"response_time": roundedDuration,
-        	},
+			},
 		).Error(website, "is down!")
 		c <- website
 		return
 	}
 	websiteResponseCode.WithLabelValues(website).Set(float64(res.StatusCode))
 	websiteResponseTime.WithLabelValues(website).Set(roundedDuration)
-    log.WithFields(
-        log.Fields{
-            "website": website,
-            "status": res.StatusCode,
+	log.WithFields(
+		log.Fields{
+			"website":       website,
+			"status":        res.StatusCode,
 			"response_time": roundedDuration,
-        },
+		},
 	).Info("Success")
 	c <- website
 }
-
-
-
